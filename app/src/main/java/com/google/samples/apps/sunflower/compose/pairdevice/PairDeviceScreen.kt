@@ -149,26 +149,18 @@ fun Sender(
                 Text("Disconnect")
             }
         }
-
-
         Text(
-            text = deviceStatus,
+            text = "Status hubungan",
             color = Color.Black,
             modifier = Modifier.padding(10.dp)
         )
 
         Text(
-            text = "Daftar perangkat",
+            text = if (deviceStatus.equals("null") === false) deviceStatus else "" ,
             color = Color.Black,
-            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(10.dp)
         )
-        Text(
-            text = "Daftar perangkat",
-            color = Color.Black,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(10.dp)
-        )
+
         Text(
             text = "Daftar perangkat",
             color = Color.Black,
@@ -197,6 +189,7 @@ fun Receiver(
     pairDeviceViewModel: PairDeviceViewModel,
     context: Context
 ) {
+    val deviceStatus = pairDeviceViewModel.deviceStatus.observeAsState(initial = "null").value
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -238,15 +231,12 @@ fun Receiver(
             color = Color.Black,
             modifier = Modifier.padding(10.dp)
         )
-//        Image(
-//            painter = painterResource(id = R.drawable.your_image_resource), // Replace with your image resource
-//            contentDescription = null,
-//            modifier = Modifier
-//                .size(200.dp)
-//                .scale(1.0f, ContentScale.Crop)
-//                .padding(16.dp)
-//                .align(Alignment.CenterHorizontally)
-//        )
+
+        Text(
+            text = if (deviceStatus.equals("null") === false) deviceStatus else "" ,
+            color = Color.Black,
+            modifier = Modifier.padding(10.dp)
+        )
     }
 }
 
