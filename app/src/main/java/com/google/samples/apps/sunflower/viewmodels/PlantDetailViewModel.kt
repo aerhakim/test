@@ -17,7 +17,6 @@
 package com.google.samples.apps.sunflower.viewmodels
 
 import android.util.Log
-import androidx.activity.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -29,8 +28,6 @@ import com.google.samples.apps.sunflower.data.GardenPlantingRepository
 import com.google.samples.apps.sunflower.data.PlantRepository
 import com.google.samples.apps.sunflower.data.SharedRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,10 +44,11 @@ class PlantDetailViewModel @Inject constructor(
     val plantId: String = savedStateHandle.get<String>(PLANT_ID_SAVED_STATE_KEY)!!
     val isPlanted = gardenPlantingRepository.isPlanted(plantId)
     val plant = plantRepository.getPlant(plantId).asLiveData()
+    private val sharedRepository = sharedRepository
 
     init {
         TODO("Function tambah my garden list masih belum bisa")
-        sharedRepository.sharedData.observeForever { data ->
+        this.sharedRepository.sharedData.observeForever { data ->
             Log.e("sharedData", data)
             if (!data.isNullOrEmpty()) {
                 addPlantToGardenFromOutside(data)
