@@ -13,9 +13,9 @@ object WifiP2pUtils {
             WifiP2pDevice.AVAILABLE -> "dapat digunakan"
             WifiP2pDevice.INVITED -> "Mengundang"
             WifiP2pDevice.CONNECTED -> "terhubung"
-            WifiP2pDevice.FAILED -> "Kegagalan"
+            WifiP2pDevice.FAILED -> "gagal"
             WifiP2pDevice.UNAVAILABLE -> "tidak tersedia"
-            else -> "未知"
+            else -> "kesalahan"
         }
     }
 

@@ -44,7 +44,7 @@ fun SunflowerApp(
     onPageChange: (SunflowerPage) -> Unit = {},
     onAttached: (Toolbar) -> Unit = {},
     plantListViewModel: PlantListViewModel = hiltViewModel(),
-    pairDeviceViewModel: PairDeviceViewModel
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
 ) {
     val navController = rememberNavController()
     SunFlowerNavHost(
@@ -62,7 +62,7 @@ fun SunFlowerNavHost(
     onPageChange: (SunflowerPage) -> Unit = {},
     onAttached: (Toolbar) -> Unit = {},
     plantListViewModel: PlantListViewModel = hiltViewModel(),
-    pairDeviceViewModel: PairDeviceViewModel
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
 ) {
     val activity = (LocalContext.current as Activity)
     NavHost(navController = navController, startDestination = "home") {
@@ -89,6 +89,7 @@ fun SunFlowerNavHost(
                 onShareClick = {
                     createShareIntent(activity, it)
                 },
+                pairDeviceViewModel = pairDeviceViewModel,
                 onGalleryClick = {
                     navController.navigate("gallery/${it.name}")
                 }

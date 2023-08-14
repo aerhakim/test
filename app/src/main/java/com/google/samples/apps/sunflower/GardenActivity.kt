@@ -17,47 +17,29 @@
 package com.google.samples.apps.sunflower
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.net.wifi.WpsInfo
-import android.net.wifi.p2p.WifiP2pConfig
-import android.net.wifi.p2p.WifiP2pDevice
-import android.net.wifi.p2p.WifiP2pInfo
-import android.net.wifi.p2p.WifiP2pManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.Toast
-import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.ui.platform.ComposeView
-import androidx.core.app.ActivityCompat
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.themeadapter.material.MdcTheme
-import com.google.samples.apps.sunflower.Logger.log
 import com.google.samples.apps.sunflower.compose.SunflowerApp
 import com.google.samples.apps.sunflower.compose.home.SunflowerPage
-import com.google.samples.apps.sunflower.utils.WifiP2pUtils
-import com.google.samples.apps.sunflower.viewmodels.FileReceiverViewModel
-import com.google.samples.apps.sunflower.viewmodels.FileSenderViewModel
 import com.google.samples.apps.sunflower.viewmodels.PairDeviceViewModel
 import com.google.samples.apps.sunflower.viewmodels.PlantListViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 
 // TODO: update the sperclass to ComponentActivity https://github.com/android/sunflower/issues/829
 @AndroidEntryPoint
@@ -170,7 +152,11 @@ class GardenActivity : AppCompatActivity() {
         pairDeviceViewModel.initDevice(this)
         sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         isDarkMode = sharedPreferences.getBoolean("isDarkMode", false)
-
+//        if (isDarkMode) {
+//            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+//        } else {
+//            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+//        }
         // Displaying edge-to-edge
         WindowCompat.setDecorFitsSystemWindows(window, false)
         requestPermissionLaunch.launch(requestedPermissions)

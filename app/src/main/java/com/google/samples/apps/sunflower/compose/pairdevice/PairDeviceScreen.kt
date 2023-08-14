@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.samples.apps.sunflower.GardenActivity
@@ -51,7 +52,7 @@ import com.google.samples.apps.sunflower.viewmodels.PairDeviceViewModel
 
 @Composable
 fun PairDeviceScreen(
-    pairDeviceViewModel: PairDeviceViewModel,
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val selectedRole = pairDeviceViewModel.selectedRole.observeAsState(initial = "null").value
@@ -65,7 +66,6 @@ fun PairDeviceScreen(
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
 
             Text("Pilih Role Anda")
@@ -106,7 +106,7 @@ fun PairDeviceScreen(
 
 @Composable
 fun Sender(
-    pairDeviceViewModel: PairDeviceViewModel,
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
     context: Context
 ) {
     val deviceStatus = pairDeviceViewModel.deviceStatus.observeAsState(initial = "null").value
@@ -175,7 +175,7 @@ fun Sender(
                         .weight(1f)
                         .padding(5.dp)
                 ) {
-                    Text("$group")
+                    Text("${group.deviceName} \n${group.deviceAddress}")
                 }
             }
         }
@@ -186,7 +186,7 @@ fun Sender(
 
 @Composable
 fun Receiver(
-    pairDeviceViewModel: PairDeviceViewModel,
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
     context: Context
 ) {
     val deviceStatus = pairDeviceViewModel.deviceStatus.observeAsState(initial = "null").value
@@ -199,11 +199,6 @@ fun Receiver(
             text = "Anda Berperan Sebagai Receiver",
             modifier = Modifier.padding(5.dp)
         )
-        Text(
-            text = "Pastikan Sudah Ada Device Yang Menjadi Receiver Sebelum Melakukan Pencarian Perangkat",
-            modifier = Modifier.padding(5.dp)
-        )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween

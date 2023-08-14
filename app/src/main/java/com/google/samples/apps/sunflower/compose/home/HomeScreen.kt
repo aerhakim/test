@@ -87,7 +87,7 @@ fun HomeScreen(
     onPlantClick: (Plant) -> Unit = {},
     onPageChange: (SunflowerPage) -> Unit = {},
     onAttached: (Toolbar) -> Unit = {},
-    pairDeviceViewModel: PairDeviceViewModel,
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
     plantListViewModel: PlantListViewModel = hiltViewModel()
 ) {
     val activity = (LocalContext.current as AppCompatActivity)
@@ -117,7 +117,7 @@ fun HomePagerScreen(
     pages: Array<SunflowerPage> = SunflowerPage.values(),
     gardenPlantingListViewModel: GardenPlantingListViewModel = hiltViewModel(),
     plantListViewModel: PlantListViewModel = hiltViewModel(),
-    pairDeviceViewModel: PairDeviceViewModel,
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
     pagerState: PagerState
 ) {
     val gardenPlants by gardenPlantingListViewModel.plantAndGardenPlantings.collectAsState(initial = emptyList())
@@ -144,7 +144,7 @@ fun HomePagerScreen(
     pages: Array<SunflowerPage> = SunflowerPage.values(),
     gardenPlants: List<PlantAndGardenPlantings>,
     plants: List<Plant>,
-    pairDeviceViewModel: PairDeviceViewModel,
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
     pagerState: PagerState
 ) {
 

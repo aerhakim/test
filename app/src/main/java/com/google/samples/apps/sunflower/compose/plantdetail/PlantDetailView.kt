@@ -77,6 +77,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -103,6 +104,7 @@ import com.google.samples.apps.sunflower.compose.utils.TextSnackbarContainer
 import com.google.samples.apps.sunflower.compose.visible
 import com.google.samples.apps.sunflower.data.Plant
 import com.google.samples.apps.sunflower.databinding.ItemPlantDescriptionBinding
+import com.google.samples.apps.sunflower.viewmodels.PairDeviceViewModel
 import com.google.samples.apps.sunflower.viewmodels.PlantDetailViewModel
 
 /**
@@ -119,10 +121,13 @@ data class PlantDetailsCallbacks(
 @Composable
 fun PlantDetailsScreen(
     plantDetailsViewModel: PlantDetailViewModel = hiltViewModel(),
+    pairDeviceViewModel: PairDeviceViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onShareClick: (String) -> Unit,
     onGalleryClick: (Plant) -> Unit,
 ) {
+    val context = LocalContext.current
+
     val plant = plantDetailsViewModel.plant.observeAsState().value
     val isPlanted = plantDetailsViewModel.isPlanted.collectAsState(initial = false).value
     val showSnackbar = plantDetailsViewModel.showSnackbar.observeAsState().value
@@ -143,7 +148,7 @@ fun PlantDetailsScreen(
                         onBackClick = onBackClick,
                         onFabClick = {
                             plantDetailsViewModel.addPlantToGarden()
-                            TODO("Tambah Action Send")
+                            pairDeviceViewModel.send(plantId, context)
                         },
                         onShareClick = onShareClick,
                         onGalleryClick = onGalleryClick,

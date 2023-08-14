@@ -26,35 +26,57 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pInfo
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.RECEIVER_EXPORTED
 import androidx.core.content.ContextCompat.registerReceiver
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.samples.apps.sunflower.Constants
 import com.google.samples.apps.sunflower.DirectActionListener
 import com.google.samples.apps.sunflower.DirectBroadcastReceiver
 import com.google.samples.apps.sunflower.Logger
+import com.google.samples.apps.sunflower.data.SharedRepository
 import com.google.samples.apps.sunflower.utils.WifiP2pUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.ObjectOutputStream
+import java.io.OutputStream
+import java.io.OutputStreamWriter
+import java.net.InetSocketAddress
+import java.net.ServerSocket
+import java.net.Socket
+import javax.inject.Inject
 import kotlin.coroutines.resume
 
-class PairDeviceViewModel(
+@HiltViewModel
+class PairDeviceViewModel @Inject constructor(
     context: Application,
-) : AndroidViewModel(context) {
+    private val sharedRepository: SharedRepository,
+) : ViewModel() {
 
     private var job: Job? = null
+    private var jobReceiver: Job? = null
+    private var jobSender: Job? = null
 
     //WifiP2P Start
     private val _wifiP2pDeviceList = MutableLiveData<List<WifiP2pDevice>>()
     val wifiP2pDeviceList: LiveData<List<WifiP2pDevice>> = _wifiP2pDeviceList
-
+    private var groupOwner: String = ""
     private var wifiP2pEnabled = false
     private var wifiP2pManager: WifiP2pManager? = null
     private var wifiP2pChannel: WifiP2pManager.Channel? = null
@@ -69,6 +91,7 @@ class PairDeviceViewModel(
 
     private val _selectedRole = MutableSharedFlow<String>()
     val selectedRole = _selectedRole.asLiveData()
+    private var _receiverData: String? = null
 
     private val _deviceStatus = MutableSharedFlow<String>()
     val deviceStatus = _deviceStatus.asLiveData()
@@ -80,12 +103,9 @@ class PairDeviceViewModel(
             wifiP2pEnabled = enabled
         }
 
-        override fun onConnectionInfoAvailable(wifiP2pInfoParams: WifiP2pInfo) {
-            _wifiP2pDeviceList.value = emptyList()
-
-            if (wifiP2pInfoParams.groupFormed && !wifiP2pInfoParams.isGroupOwner) {
-                wifiP2pInfo = wifiP2pInfoParams
-            }
+        override fun onConnectionInfoAvailable(wifiP2pInfo: WifiP2pInfo) {
+            Log.e("wifiP2pInfo", wifiP2pInfo.groupOwnerAddress.hostAddress!!)
+            groupOwner = wifiP2pInfo.groupOwnerAddress.hostAddress!!
         }
 
         override fun onDisconnection() {
@@ -97,7 +117,6 @@ class PairDeviceViewModel(
 
         override fun onSelfDeviceAvailable(wifiP2pDevice: WifiP2pDevice) {
             val log = "deviceName：" + wifiP2pDevice.deviceName + "\n" +
-                    "deviceAddress：" + wifiP2pDevice.deviceAddress + "\n" +
                     "deviceStatus：" + WifiP2pUtils.getDeviceStatus(wifiP2pDevice.status)
             viewModelScope.launch {
                 _deviceStatus.emit(log)
@@ -117,19 +136,75 @@ class PairDeviceViewModel(
         }
     }
 
-    //    private val fileSenderViewModel by viewModels<FileSenderViewModel>()
-//
-//    private val getContentLaunch = registerForActivityResult(
-//        ActivityResultContracts.GetContent()
-//    ) { imageUri ->
-//        if (imageUri != null) {
-//            val ipAddress = wifiP2pInfo?.groupOwnerAddress?.hostAddress
-//            log("getContentLaunch $imageUri $ipAddress")
-//            if (!ipAddress.isNullOrBlank()) {
-//                fileSenderViewModel.send(ipAddress = ipAddress, fileUri = imageUri)
-//            }
-//        }
-//    }
+    fun send(plantId: String, context: Context) {
+        if (jobSender != null) {
+            return
+        }
+        jobSender = viewModelScope.launch {
+            withContext(context = Dispatchers.IO) {
+                var socket: Socket? = null
+                var outputStream: OutputStream? = null
+                var objectOutputStream: ObjectOutputStream? = null
+                try {
+                    socket = Socket()
+                    socket.bind(null)
+                    socket.connect(InetSocketAddress(groupOwner, Constants.PORT), 30000)
+                    outputStream = socket.getOutputStream()
+                    val objectOutputStream = BufferedWriter(OutputStreamWriter(outputStream))
+                    objectOutputStream.write(plantId)
+                    objectOutputStream.newLine()
+                    objectOutputStream.flush()
+                    Log.e(
+                        "SendResultSuccess",
+                        "$groupOwner $plantId"
+                    )
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                    Log.e("Send Error", e.toString())
+                } finally {
+                    outputStream?.close()
+                    objectOutputStream?.close()
+                    socket?.close()
+                }
+            }
+        }
+        jobSender?.invokeOnCompletion {
+            jobSender = null
+        }
+    }
+
+    fun startListener(context: Context) {
+        if (jobReceiver != null) {
+            return
+        }
+        jobReceiver = viewModelScope.launch(context = Dispatchers.IO) {
+            var serverSocket: ServerSocket? = null
+            var clientInputStream: InputStream? = null
+            var reader: BufferedReader? = null
+            try {
+                serverSocket = ServerSocket()
+                serverSocket.bind(InetSocketAddress(Constants.PORT))
+                serverSocket.reuseAddress = true
+                serverSocket.soTimeout = 30000
+                val client = serverSocket.accept()
+                clientInputStream = client.getInputStream()
+                reader = BufferedReader(InputStreamReader(clientInputStream))
+                _receiverData = reader.readLine()
+//                Log.e("ReceiveResult ", reader.readLine())
+            } catch (e: Throwable) {
+                Log.e("startListener", e.toString())
+            } finally {
+                serverSocket?.close()
+                clientInputStream?.close()
+                reader?.close()
+            }
+        }
+        jobReceiver?.invokeOnCompletion {
+            jobReceiver = null
+            sharedRepository.updateSharedData(_receiverData!!)
+        }
+    }
+
     fun initDevice(context: Context) {
         if (wifiP2pManager == null) {
             return
@@ -171,6 +246,7 @@ class PairDeviceViewModel(
                 override fun onSuccess() {
                     val log = "Sukses Buat Group"
                     Toast.makeText(context, log, Toast.LENGTH_SHORT).show()
+                    startListener(context)
                 }
 
                 override fun onFailure(reason: Int) {
@@ -230,7 +306,7 @@ class PairDeviceViewModel(
             wifiP2pConfig,
             object : WifiP2pManager.ActionListener {
                 override fun onSuccess() {
-                    Toast.makeText(context, "Berhasil Terkoneksi", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Berhasil Terhubung", Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onFailure(reason: Int) {
