@@ -18,12 +18,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/filter_zone"
-        android:icon="@drawable/ic_filter_list_24dp"
-        app:showAsAction="always"
-        android:title="@string/menu_filter_by_grow_zone"/>
     <item android:id="@+id/switch_darkmode"
         android:icon="@drawable/baseline_contrast_24"
         app:showAsAction="always"
-        android:title="Dark Mode"/>
+        android:title="Dark Mode" />
 </menu>

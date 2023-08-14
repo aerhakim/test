@@ -16,185 +16,198 @@
 
 package com.google.samples.apps.sunflower.compose.plantlist
 
-import PairDeviceViewModel
-import android.Manifest
+import android.app.Application
 import android.content.Context
-import android.content.pm.PackageManager
-import android.net.wifi.p2p.WifiP2pDevice
-import android.net.wifi.p2p.WifiP2pGroup
-import android.net.wifi.p2p.WifiP2pManager
-import android.util.Log
-import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat
-import androidx.core.content.edit
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.samples.apps.sunflower.GardenActivity
-import com.google.samples.apps.sunflower.viewmodels.PlantListViewModel
 import com.google.samples.apps.sunflower.R
-import com.google.samples.apps.sunflower.data.Plant
-import java.time.format.TextStyle
+import com.google.samples.apps.sunflower.viewmodels.PairDeviceViewModel
 
 @Composable
-fun PairDeviceScreen(){
-    val parentValue = (LocalContext.current as GardenActivity).parentValue
-//    Text(text = "mm")
+fun PairDeviceScreen(
+    pairDeviceViewModel: PairDeviceViewModel,
+) {
+    val context = LocalContext.current
+    val selectedRole = pairDeviceViewModel.selectedRole.observeAsState(initial = "null").value
+    if (selectedRole === "Receiver") {
+        Receiver(pairDeviceViewModel, context)
+    } else if (selectedRole === "Sender") {
+        Sender(pairDeviceViewModel, context)
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
 
-    FileReceiver()
-//    FileReceiverScreen()
+            Text("Pilih Role Anda")
+            Text("Pastikan untuk sudah ada device receiver terlebih dahulu sebelum membuat device sender")
+            Button(
+                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.onPrimary),
+                shape = RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = dimensionResource(id = R.dimen.button_corner_radius),
+                    bottomStart = dimensionResource(id = R.dimen.button_corner_radius),
+                    bottomEnd = 0.dp,
+                ),
+                onClick = { pairDeviceViewModel.changeSelectedRole("Sender") },
+            ) {
+                Text(
+                    color = MaterialTheme.colors.primary,
+                    text = "Sender"
+                )
+            }
+            Button(
+                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.onPrimary),
+                shape = RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = dimensionResource(id = R.dimen.button_corner_radius),
+                    bottomStart = dimensionResource(id = R.dimen.button_corner_radius),
+                    bottomEnd = 0.dp,
+                ),
+                onClick = { pairDeviceViewModel.changeSelectedRole("Receiver") },
+            ) {
+                Text(
+                    color = MaterialTheme.colors.primary,
+                    text = "Receiver"
+                )
+            }
+        }
+    }
 }
 
 @Composable
-fun FileReceiverScreen() {
+fun Sender(
+    pairDeviceViewModel: PairDeviceViewModel,
+    context: Context
+) {
+    val deviceStatus = pairDeviceViewModel.deviceStatus.observeAsState(initial = "null").value
+    val wifiP2pDeviceList = pairDeviceViewModel.wifiP2pDeviceList.observeAsState(initial = emptyList())
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         Text(
-            text = "1. Baik ujung pengiriman file maupun ujung penerima harus mengaktifkan Wifi\\n2. Ujung penerima file terlebih dahulu membuat grup, dan ujung pengirim file mencari perangkat dan mengeklik untuk menghubungkan\\n3. Setelah koneksi berhasil, ujung penerima file mulai memantau terlebih dahulu, lalu mengirim file Kemudian pilih file yang akan dikirim\n",
+            text = "Anda Berperan Sebagai Sender",
             color = Color.Black,
-            fontSize = 18.sp,
             modifier = Modifier.padding(5.dp)
         )
-
+        Text(
+            text = "Pastikan Sudah Ada Device Yang Menjadi Receiver Sebelum Melakukan Pencarian Perangkat",
+            color = Color.Black,
+            modifier = Modifier.padding(5.dp)
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                onClick = { /* Handle Direct Discover button click */ },
-                modifier = Modifier.weight(1f).padding(5.dp)
+                onClick = { pairDeviceViewModel.discoverWifi(context) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp)
             ) {
-                Text("perangkat pencarian")
+                Text("Cari Perangkat")
             }
 
             Button(
-                onClick = { /* Handle Disconnect button click */ },
-                modifier = Modifier.weight(1f).padding(5.dp)
+                onClick = { pairDeviceViewModel.disconnect(context) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp)
             ) {
-                Text("Memutuskan")
+                Text("Disconnect")
             }
         }
 
-        Button(
-            onClick = { /* Handle Choose File button click */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-            enabled = false
-        ) {
-            Text("Pilih File")
-        }
 
         Text(
-            text = "Antarmuka informasi perangkat ini",
+            text = deviceStatus,
             color = Color.Black,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(10.dp)
-        )
-
-        Text(
-            text = "Mi 5X",
-            color = Color.Black,
-            fontSize = 18.sp,
-            modifier = Modifier.padding(10.dp)
-        )
-
-        Text(
-            text = "Status hubungan",
-            color = Color.Black,
-            fontSize = 18.sp,
             modifier = Modifier.padding(10.dp)
         )
 
         Text(
             text = "Daftar perangkat",
             color = Color.Black,
-            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(10.dp)
         )
-
-        // RecyclerView for device list
-        AndroidView(
-            factory = { context ->
-                RecyclerView(context).apply {
-                    layoutManager = LinearLayoutManager(context)
-                    // Set up your adapter and data here
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 0.dp, max = 600.dp)
+        Text(
+            text = "Daftar perangkat",
+            color = Color.Black,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(10.dp)
         )
+        Text(
+            text = "Daftar perangkat",
+            color = Color.Black,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(10.dp)
+        )
+        LazyColumn {
+            items(wifiP2pDeviceList.value) { group ->
+                Button(
+                    onClick = { pairDeviceViewModel.connect(group,context) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(5.dp)
+                ) {
+                    Text("$group")
+                }
+            }
+        }
 
         // Add your log output TextView here
     }
 }
 
 @Composable
-fun FileReceiver() {
-    val parentValue = GardenActivity().parentValue
+fun Receiver(
+    pairDeviceViewModel: PairDeviceViewModel,
+    context: Context
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         Text(
-            text = parentValue,
-            fontSize = 18.sp,
+            text = "Anda Berperan Sebagai Receiver",
             modifier = Modifier.padding(5.dp)
         )
         Text(
-            text = "Tips",
-            fontSize = 18.sp,
+            text = "Pastikan Sudah Ada Device Yang Menjadi Receiver Sebelum Melakukan Pencarian Perangkat",
             modifier = Modifier.padding(5.dp)
         )
 
@@ -203,29 +216,28 @@ fun FileReceiver() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
-                onClick = { GardenActivity().createGroup() },
-                modifier = Modifier.weight(1f).padding(5.dp)
+                onClick = { pairDeviceViewModel.createGroup(context) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp)
             ) {
-                Text("membuat grup")
+                Text("Buat Connection Group")
             }
 
             Button(
-                onClick = { GardenActivity().removeGroup() },
-                modifier = Modifier.weight(1f).padding(5.dp)
+                onClick = { pairDeviceViewModel.removeGroup(context) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp)
             ) {
-                Text("hapus grup")
+                Text("Hapus Connection Group")
             }
         }
-
-        Button(
-            onClick = { /* Handle Start Receive button click */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp)
-        ) {
-            Text("mulai pemantauan")
-        }
-
+        Text(
+            text = "Status hubungan",
+            color = Color.Black,
+            modifier = Modifier.padding(10.dp)
+        )
 //        Image(
 //            painter = painterResource(id = R.drawable.your_image_resource), // Replace with your image resource
 //            contentDescription = null,
@@ -235,19 +247,11 @@ fun FileReceiver() {
 //                .padding(16.dp)
 //                .align(Alignment.CenterHorizontally)
 //        )
-
-        Text(
-            text = "Log output",
-            fontSize = 18.sp,
-            modifier = Modifier.padding(10.dp)
-        )
-
-        // Add your log output TextView here
     }
 }
 
 @Preview
 @Composable
 fun PairDeviceScreenPreview() {
-    FileReceiver()
+//    Receiver()
 }

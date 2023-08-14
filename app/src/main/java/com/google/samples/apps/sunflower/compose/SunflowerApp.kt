@@ -36,6 +36,7 @@ import com.google.samples.apps.sunflower.compose.gallery.GalleryScreen
 import com.google.samples.apps.sunflower.compose.home.HomeScreen
 import com.google.samples.apps.sunflower.compose.home.SunflowerPage
 import com.google.samples.apps.sunflower.compose.plantdetail.PlantDetailsScreen
+import com.google.samples.apps.sunflower.viewmodels.PairDeviceViewModel
 import com.google.samples.apps.sunflower.viewmodels.PlantListViewModel
 
 @Composable
@@ -43,10 +44,12 @@ fun SunflowerApp(
     onPageChange: (SunflowerPage) -> Unit = {},
     onAttached: (Toolbar) -> Unit = {},
     plantListViewModel: PlantListViewModel = hiltViewModel(),
+    pairDeviceViewModel: PairDeviceViewModel
 ) {
     val navController = rememberNavController()
     SunFlowerNavHost(
         plantListViewModel = plantListViewModel,
+        pairDeviceViewModel = pairDeviceViewModel,
         navController = navController,
         onPageChange = onPageChange,
         onAttached = onAttached
@@ -59,6 +62,7 @@ fun SunFlowerNavHost(
     onPageChange: (SunflowerPage) -> Unit = {},
     onAttached: (Toolbar) -> Unit = {},
     plantListViewModel: PlantListViewModel = hiltViewModel(),
+    pairDeviceViewModel: PairDeviceViewModel
 ) {
     val activity = (LocalContext.current as Activity)
     NavHost(navController = navController, startDestination = "home") {
@@ -69,8 +73,10 @@ fun SunFlowerNavHost(
                 },
                 onPageChange = onPageChange,
                 onAttached = onAttached,
-                plantListViewModel = plantListViewModel
-            )
+                plantListViewModel = plantListViewModel,
+                pairDeviceViewModel = pairDeviceViewModel,
+
+                )
         }
         composable(
             "plantDetail/{plantId}",

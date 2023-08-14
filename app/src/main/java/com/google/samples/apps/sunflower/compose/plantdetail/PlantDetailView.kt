@@ -18,6 +18,8 @@ package com.google.samples.apps.sunflower.compose.plantdetail
 
 import android.graphics.drawable.Drawable
 import android.text.method.LinkMovementMethod
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
@@ -124,6 +126,7 @@ fun PlantDetailsScreen(
     val plant = plantDetailsViewModel.plant.observeAsState().value
     val isPlanted = plantDetailsViewModel.isPlanted.collectAsState(initial = false).value
     val showSnackbar = plantDetailsViewModel.showSnackbar.observeAsState().value
+    val plantId = plantDetailsViewModel.plantId
 
     if (plant != null && isPlanted != null && showSnackbar != null) {
         Surface {
@@ -140,6 +143,7 @@ fun PlantDetailsScreen(
                         onBackClick = onBackClick,
                         onFabClick = {
                             plantDetailsViewModel.addPlantToGarden()
+                            TODO("Tambah Action Send")
                         },
                         onShareClick = onShareClick,
                         onGalleryClick = onGalleryClick,

@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2018 Google LLC
+  ~ Copyright 2023 Google LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,15 +14,8 @@
   ~ limitations under the License.
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <item android:id="@+id/filter_zone"
-        android:icon="@drawable/ic_filter_list_24dp"
-        app:showAsAction="always"
-        android:title="@string/menu_filter_by_grow_zone"/>
-    <item android:id="@+id/switch_darkmode"
-        android:icon="@drawable/baseline_contrast_24"
-        app:showAsAction="always"
-        android:title="Dark Mode"/>
-</menu>
+<vector android:height="24dp" android:tint="@android:color/white"
+    android:viewportHeight="24" android:viewportWidth="24"
+    android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillColor="@android:color/white" android:pathData="M12,22c5.52,0 10,-4.48 10,-10S17.52,2 12,2S2,6.48 2,12S6.48,22 12,22zM13,4.07c3.94,0.49 7,3.85 7,7.93s-3.05,7.44 -7,7.93V4.07z"/>
+</vector>

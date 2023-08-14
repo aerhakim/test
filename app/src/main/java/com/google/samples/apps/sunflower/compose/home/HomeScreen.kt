@@ -66,6 +66,7 @@ import com.google.samples.apps.sunflower.data.Plant
 import com.google.samples.apps.sunflower.data.PlantAndGardenPlantings
 import com.google.samples.apps.sunflower.databinding.HomeScreenBinding
 import com.google.samples.apps.sunflower.viewmodels.GardenPlantingListViewModel
+import com.google.samples.apps.sunflower.viewmodels.PairDeviceViewModel
 import com.google.samples.apps.sunflower.viewmodels.PlantListViewModel
 import kotlinx.coroutines.launch
 
@@ -75,7 +76,7 @@ enum class SunflowerPage(
 ) {
     MY_GARDEN(R.string.my_garden_title, R.drawable.ic_my_garden_active),
     PLANT_LIST(R.string.plant_list_title, R.drawable.ic_plant_list_active),
-    PAIR_DEVICE(R.string.plant_device_title, R.drawable.ic_plant_list_active)
+    PAIR_DEVICE(R.string.plant_device_title, R.drawable.baseline_wifi_tethering_24)
 
 }
 
@@ -86,6 +87,7 @@ fun HomeScreen(
     onPlantClick: (Plant) -> Unit = {},
     onPageChange: (SunflowerPage) -> Unit = {},
     onAttached: (Toolbar) -> Unit = {},
+    pairDeviceViewModel: PairDeviceViewModel,
     plantListViewModel: PlantListViewModel = hiltViewModel()
 ) {
     val activity = (LocalContext.current as AppCompatActivity)
@@ -99,6 +101,7 @@ fun HomeScreen(
                 onPlantClick = onPlantClick,
                 onPageChange = onPageChange,
                 plantListViewModel = plantListViewModel,
+                pairDeviceViewModel = pairDeviceViewModel,
                 pagerState = pagerState
             )
         }
@@ -114,6 +117,7 @@ fun HomePagerScreen(
     pages: Array<SunflowerPage> = SunflowerPage.values(),
     gardenPlantingListViewModel: GardenPlantingListViewModel = hiltViewModel(),
     plantListViewModel: PlantListViewModel = hiltViewModel(),
+    pairDeviceViewModel: PairDeviceViewModel,
     pagerState: PagerState
 ) {
     val gardenPlants by gardenPlantingListViewModel.plantAndGardenPlantings.collectAsState(initial = emptyList())
@@ -122,6 +126,7 @@ fun HomePagerScreen(
         onPlantClick = onPlantClick,
         onPageChange = onPageChange,
         modifier = modifier,
+        pairDeviceViewModel = pairDeviceViewModel,
         pages = pages,
         gardenPlants = gardenPlants,
         plants = plants,
@@ -139,6 +144,7 @@ fun HomePagerScreen(
     pages: Array<SunflowerPage> = SunflowerPage.values(),
     gardenPlants: List<PlantAndGardenPlantings>,
     plants: List<Plant>,
+    pairDeviceViewModel: PairDeviceViewModel,
     pagerState: PagerState
 ) {
 
@@ -202,7 +208,9 @@ fun HomePagerScreen(
                     )
                 }
                 SunflowerPage.PAIR_DEVICE -> {
-                    PairDeviceScreen()
+                    PairDeviceScreen(
+                        pairDeviceViewModel = pairDeviceViewModel,
+                    )
                 }
             }
         }
@@ -251,16 +259,16 @@ private fun HomeTopAppBar(
 private fun HomeScreenPreview(
     @PreviewParameter(HomeScreenPreviewParamProvider::class) param: HomePreviewParam
 ) {
-    MdcTheme {
-        val pagerState = rememberPagerState()
-        HomePagerScreen(
-            onPlantClick = {},
-            onPageChange = {},
-            gardenPlants = param.gardenPlants,
-            plants = param.plants,
-            pagerState = pagerState
-        )
-    }
+//    MdcTheme {
+//        val pagerState = rememberPagerState()
+//        HomePagerScreen(
+//            onPlantClick = {},
+//            onPageChange = {},
+//            gardenPlants = param.gardenPlants,
+//            plants = param.plants,
+//            pagerState = pagerState,
+//        )
+//    }
 }
 
 private data class HomePreviewParam(
